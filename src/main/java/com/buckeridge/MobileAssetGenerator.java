@@ -3,6 +3,9 @@ package com.buckeridge;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -33,6 +36,12 @@ public class MobileAssetGenerator {
      */
     private static final String OUTPUT_DIR_DEFAULT_NAME = "android-resources";
 
+    /**
+     * Supported file extensions
+     */
+    private static final List<String> SUPPORTED_FILE_EXTENSIONS = Arrays.asList(".png", ".jpg", ".jpeg");
+
+
     public static void main(String[] args) {
 
         /**
@@ -51,10 +60,11 @@ public class MobileAssetGenerator {
         File outputDirectory = new File(OUTPUT_DIR_DEFAULT_NAME);
 
         /**
-         * The input density.
-         * Defaults to the highest.
+         * The input density. Defaults to the highest.
+         * To use a pre-scale factor is better than to use an input density because the scale is not limited to those
+         * determined by the limited density set.
          */
-        Density inputDensity = Density.XXXHDPI;
+        final Density inputDensity = Density.XXXHDPI;
 
 	    //process args
         if (args == null || args.length == 0) {
@@ -104,19 +114,33 @@ public class MobileAssetGenerator {
             System.exit(-1);
         }
 
-        outputDirectory.mkdirs();
-        if (inputDensity == null) {
-            // default to highest
-            inputDensity = Density.XXXHDPI;
+        List<File> files = new LinkedList<>();
+        if (inputFile.isDirectory()) {
+            //directory
+            File[] filtered = inputFile.listFiles((dir, name) -> {
+                for (String ext : SUPPORTED_FILE_EXTENSIONS) {
+                    if (name.endsWith(ext) && new File(name).isFile()) return true;
+                }
+                return false;
+            });
+            files.addAll(Arrays.asList(filtered));
+        } else {
+            //file
+            files.add(inputFile);
         }
-        //export all densities
-        for (Density outputDensity : Density.values()) {
-            try {
-                ImageProcessor.exportImage(inputFile, outputDirectory, preScale, inputDensity, outputDensity);
-            } catch (FileAlreadyExistsException e) {
-                System.err.println(String.format(Locale.US, "File already exists: %s", e.getMessage()));
-            } catch (IOException e) {
-                System.err.println(e.getCause() + e.getMessage());
+        //create directories
+        outputDirectory.mkdirs();
+        //export all files
+        for (File file : files) {
+            //export all densities
+            for (Density outputDensity : Density.values()) {
+                try {
+                    ImageProcessor.exportImage(file, outputDirectory, preScale, inputDensity, outputDensity);
+                } catch (FileAlreadyExistsException e) {
+                    System.err.println(String.format(Locale.US, "File already exists: %s", e.getMessage()));
+                } catch (IOException e) {
+                    System.err.println(e.getCause() + e.getMessage());
+                }
             }
         }
     }
