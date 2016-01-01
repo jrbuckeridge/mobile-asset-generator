@@ -19,7 +19,8 @@ public class MobileAssetGenerator {
     private static final String USAGE =
             "Arguments: \n" +
             "Pre-scale : --pre-scale | -ps {floatValue} \n" +
-            "Input file: --file | -f {filename.png} \n";
+            "Input file: --file | -f {filename.png} \n" +
+            "Overwrite : --overwrite | -ow";
 
     /**
      * Prescale commands
@@ -30,6 +31,11 @@ public class MobileAssetGenerator {
      * File commands
      */
     private static final String CMD_FILE[] = {"--file", "-f"};
+
+    /**
+     * Overwrite commands
+     */
+    private static final String OVERWRITE_FILES[] = {"--overwrite", "-ow"};
 
     /**
      * Default output directory
@@ -66,6 +72,11 @@ public class MobileAssetGenerator {
          */
         final Density inputDensity = Density.XXXHDPI;
 
+        /**
+         * Overwrite output files
+         */
+        boolean overwrite = false;
+
 	    //process args
         if (args == null || args.length == 0) {
             printUsageAndExit();
@@ -96,7 +107,13 @@ public class MobileAssetGenerator {
                     printUsageAndExit();
                 }
             }
+
+            // overwrite
+            if (OVERWRITE_FILES[0].equalsIgnoreCase(args[i]) || OVERWRITE_FILES[1].equalsIgnoreCase(args[i])) {
+                overwrite = true;
+            }
         }
+
         //validate input filename
         if (inputFilename == null || "".equalsIgnoreCase(inputFilename)) {
             printUsageAndExit();
@@ -135,7 +152,7 @@ public class MobileAssetGenerator {
             //export all densities
             for (Density outputDensity : Density.values()) {
                 try {
-                    ImageProcessor.exportImage(file, outputDirectory, preScale, inputDensity, outputDensity);
+                    ImageProcessor.exportImage(file, outputDirectory, preScale, inputDensity, outputDensity, overwrite);
                 } catch (FileAlreadyExistsException e) {
                     System.err.println(String.format(Locale.US, "File already exists: %s", e.getMessage()));
                 } catch (IOException e) {
