@@ -80,6 +80,7 @@ public class MobileAssetGenerator {
 	    //process args
         if (args == null || args.length == 0) {
             printUsageAndExit();
+            return;
         }
         for (int i = 0; i < args.length; i++) {
             // pre-scale
@@ -117,6 +118,7 @@ public class MobileAssetGenerator {
         //validate input filename
         if (inputFilename == null || "".equalsIgnoreCase(inputFilename)) {
             printUsageAndExit();
+            return;
         }
         //check prescale correctness
         if (preScale <= 0) {
@@ -136,7 +138,7 @@ public class MobileAssetGenerator {
             //directory
             File[] filtered = inputFile.listFiles((dir, name) -> {
                 for (String ext : SUPPORTED_FILE_EXTENSIONS) {
-                    if (name.endsWith(ext) && new File(name).isFile()) return true;
+                    if (name.endsWith(ext) && new File(inputFile, name).isFile()) return true;
                 }
                 return false;
             });
